@@ -1,0 +1,98 @@
+# Compose file for launching the test setup with
+# a Peer for Acme and a Peer for Budget
+# RAFT
+
+version: '2'
+
+networks:
+  airline:
+
+# Storage for additional orderer containers
+volumes:
+  data-orderer2.acme.com:
+  data-orderer3.acme.com:
+
+
+services:
+
+  # Orderer service
+  # Merged with the properties defined in docker-compose-base.yaml  tls/docker-compose-tls.yaml
+  orderer.acme.com:
+    container_name: orderer.acme.com
+    image: hyperledger/fabric-orderer:$IMAGE_TAG
+    command: orderer
+    # Override environment variables for orderer in this section
+    environment:
+      - FABRIC_CFG_PATH=/var/hyperledger/config
+      - FABRIC_LOGGING_SPEC=INFO
+      # TLS Setup
+        # Already setup for this orderer in the TLS Compose YAML
+        
+      # RAFT related setup
+      - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/var/hyperledger/tls/server.crt
+      - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/var/hyperledger/tls/server.key
+      - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/var/hyperledger/tls/ca.crt]
+
+  # Orderer2 service
+  orderer2.acme.com:
+    container_name: orderer2.acme.com
+    image: hyperledger/fabric-orderer:$IMAGE_TAG
+    command: orderer
+    # Override environment variables for orderer in this section
+    environment:
+      - FABRIC_CFG_PATH=/var/hyperledger/config
+      - FABRIC_LOGGING_SPEC=INFO
+      # TLS Setup
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/tls/ca.crt]
+      # RAFT related setup
+      - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/var/hyperledger/tls/server.crt
+      - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/var/hyperledger/tls/server.key
+      - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/var/hyperledger/tls/ca.crt]
+    # Host folder mappings
+    volumes:
+    # Folder with genesis block
+    - ${PWD}/config/orderer:/var/hyperledger/config
+    # Map the folder with MSP for orderer
+    - ${PWD}/config/crypto-config/ordererOrganizations/acme.com/orderers/orderer2.acme.com/msp:/var/hyperledger/msp
+    # Added to support the TLS setup
+    - ${PWD}/config/crypto-config/ordererOrganizations/acme.com/orderers/orderer2.acme.com/tls:/var/hyperledger/tls
+    - data-orderer2.acme.com:/var/ledger
+    ports:
+      - 8050:7050
+    networks:
+      - airline
+
+  # Orderer3 service
+  orderer3.acme.com:
+    container_name: orderer3.acme.com
+    image: hyperledger/fabric-orderer:$IMAGE_TAG
+    command: orderer
+    # Override environment variables for orderer in this section
+    environment:
+      - FABRIC_CFG_PATH=/var/hyperledger/config
+      - FABRIC_LOGGING_SPEC=INFO
+      # TLS Setup
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/tls/ca.crt]
+      # RAFT related setup
+      - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/var/hyperledger/tls/server.crt
+      - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/var/hyperledger/tls/server.key
+      - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/var/hyperledger/tls/ca.crt]
+    # Host folder mappings
+    volumes:
+    # Folder with genesis block
+    - ${PWD}/config/orderer:/var/hyperledger/config
+    # Map the folder with MSP for orderer
+    - ${PWD}/config/crypto-config/ordererOrganizations/acme.com/orderers/orderer3.acme.com/msp:/var/hyperledger/msp
+    # Added to support the TLS setup
+    - ${PWD}/config/crypto-config/ordererOrganizations/acme.com/orderers/orderer3.acme.com/tls:/var/hyperledger/tls
+    - data-orderer3.acme.com:/var/ledger
+    ports:
+      - 9050:7050
+    networks:
+      - airline
