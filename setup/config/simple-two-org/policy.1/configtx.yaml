@@ -1,0 +1,175 @@
+# Updated for Fabric 2.x
+# policy.1
+# Simplified configtx.yaml
+
+#   CAPABILITIES
+Capabilities:
+  Application: &ApplicationCapabilities
+    V2_0: true
+  Orderer: &OrdererCapabilities
+    V2_0: true
+  Channel: &ChannelCapabilities
+    V2_0: true
+
+# ORGANIZATIONS
+Organizations:
+  - &Orderer
+    Name: OrdererMSP
+    SkipAsForeign: false
+    ID: OrdererMSP
+    MSPDir: ./crypto-config/ordererOrganizations/acme.com/msp
+    Policies: &OrdererPolicies
+      Readers:
+          Type: Signature
+          Rule: "OR('OrdererMSP.member')"
+      Writers:
+          Type: Signature
+          Rule: "OR('OrdererMSP.member')"
+      Admins:
+          Type: Signature
+          Rule: "OR('OrdererMSP.member')"
+      Endorsement:
+          Type: Signature
+          Rule: "OR('OrdererMSP.member')"
+
+  - &Org1
+    Name: Org1
+    ID: Org1MSP
+    MSPDir: ./crypto-config/peerOrganizations/acme.com/msp
+    Policies: &Org1Policies
+      Readers:
+          Type: Signature
+        #   Rule: "OR('AcmeMSP.admin', 'AcmeMSP.peer', 'AcmeMSP.client')"
+          Rule: "OR('Org1MSP.member')"
+      Writers:
+          Type: Signature
+        #   Rule: "OR('AcmeMSP.admin', 'AcmeMSP.client')"
+          Rule: "OR('Org1MSP.member')"
+      Admins:
+          Type: Signature
+          # UPDATE: Dec 15, 2019 - This is a dev env so its OK in Prod ... use AcmeMSP.admin
+          Rule: "OR('Org1MSP.member')"
+      Endorsement:
+          Type: Signature
+          Rule: "OR('Org1MSP.member')"
+    AnchorPeers:
+      - Host: peer1.acme.com
+        Port: 7051
+
+  
+#   ORDERER
+Orderer: &OrdererDefaults
+
+  OrdererType: solo
+
+  Addresses:
+    - localhost:7050
+
+  # Policies for Orderer
+  Policies:
+    Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+    Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+    Admins:
+        Type: ImplicitMeta  
+        # UPDATED December 15, 2019
+        Rule: "ANY Admins"
+        # Rule: "MAJORITY Admins"
+
+    # BlockValidation specifies what signatures must be included in the block
+    # from the orderer for the peer to validate it.
+    BlockValidation:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+
+  # Batch Timeout: The amount of time to wait before creating a batch
+  BatchTimeout: 2s
+
+  # Batch Size: Controls the number of messages batched into a block
+  BatchSize:
+    MaxMessageCount: 10
+    AbsoluteMaxBytes: 98 MB
+    PreferredMaxBytes: 512 KB
+
+  Capabilities:
+    <<: *OrdererCapabilities
+
+
+Application: &ApplicationDefaults
+
+  
+  # Default policies
+  Policies: &ApplicationDefaultPolicies
+
+    # approveformyorg
+    LifecycleEndorsement:
+        Type: ImplicitMeta
+        # Rule: "MAJORITY Endorsement"
+        Rule: "ANY Endorsement"
+    
+    # --channel-config-policy
+    Endorsement:
+        Type: ImplicitMeta
+        Rule: "MAJORITY Endorsement"
+    Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+    Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+    Admins:
+        Type: ImplicitMeta
+        Rule: "MAJORITY Admins"
+
+  Capabilities:
+    <<: *ApplicationCapabilities
+
+  Organizations:
+ 
+
+#   CHANNEL
+Channel: &ChannelDefaults
+  Policies:
+    Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+    Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+    Admins:
+        Type: ImplicitMeta
+        Rule: "MAJORITY Admins"
+
+  Capabilities:
+    <<: *ChannelCapabilities
+ 
+#   PROFILES
+Profiles:
+
+  AcmeOrdererGenesis:
+      <<: *ChannelDefaults
+      Orderer:
+          <<: *OrdererDefaults
+          Organizations:
+              - <<: *Orderer
+      Consortiums:
+        AirlineConsortium:   
+            Organizations:
+                  - <<: *Org1
+
+                  
+  AcmeChannel:
+    <<: *ChannelDefaults
+    Consortium: AirlineConsortium
+        
+    Application:
+        <<: *ApplicationDefaults
+        
+        Organizations:
+            - <<: *Org1
+
+
+
