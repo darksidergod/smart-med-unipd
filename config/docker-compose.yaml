@@ -1,0 +1,347 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+volumes:
+  orderer1.workspace:
+  orderer2.workspace:
+  orderer3.workspace:
+  orderer4.workspace:
+  orderer5.workspace:
+  peer1.healthcare.workspace:
+  peer2.healthcare.workspace:
+  peer1.research.workspace:
+  peer2.research.workspace:
+  peer1.thirdparty.workspace:
+  peer2.thirdparty.workspace:
+
+networks:
+  byfn:
+
+services:
+  orderer1.workspace:
+    extends:
+      file: base.yaml
+      service: orderer-base
+    container_name: orderer1.workspace
+    networks:
+    - byfn
+    volumes:
+        - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+        - ./crypto-config/ordererOrganizations/workspace/orderers/orderer1.workspace/msp:/var/hyperledger/orderer/msp
+        - ./crypto-config/ordererOrganizations/workspace/orderers/orderer1.workspace/tls/:/var/hyperledger/orderer/tls
+        - orderer1.workspace:/var/hyperledger/production/orderer
+    ports:
+    - 7050:7050
+
+  orderer2.workspace:
+    extends:
+      file: base.yaml
+      service: orderer-base
+    container_name: orderer2.workspace
+    networks:
+    - byfn
+    volumes:
+        - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+        - ./crypto-config/ordererOrganizations/workspace/orderers/orderer2.workspace/msp:/var/hyperledger/orderer/msp
+        - ./crypto-config/ordererOrganizations/workspace/orderers/orderer2.workspace/tls/:/var/hyperledger/orderer/tls
+        - orderer2.workspace:/var/hyperledger/production/orderer
+    ports:
+    - 8050:7050
+
+  orderer3.workspace:
+    extends:
+      file: base.yaml
+      service: orderer-base
+    container_name: orderer3.workspace
+    networks:
+    - byfn
+    volumes:
+        - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+        - ./crypto-config/ordererOrganizations/workspace/orderers/orderer3.workspace/msp:/var/hyperledger/orderer/msp
+        - ./crypto-config/ordererOrganizations/workspace/orderers/orderer3.workspace/tls/:/var/hyperledger/orderer/tls
+        - orderer3.workspace:/var/hyperledger/production/orderer
+    ports:
+    - 9050:7050
+
+
+  orderer4.workspace:
+    extends:
+      file: base.yaml
+      service: orderer-base
+    container_name: orderer4.workspace
+    networks:
+    - byfn
+    volumes:
+        - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+        - ./crypto-config/ordererOrganizations/workspace/orderers/orderer4.workspace/msp:/var/hyperledger/orderer/msp
+        - ./crypto-config/ordererOrganizations/workspace/orderers/orderer4.workspace/tls/:/var/hyperledger/orderer/tls
+        - orderer4.workspace:/var/hyperledger/production/orderer
+    ports:
+    - 10050:7050
+
+  orderer5.workspace:
+    extends:
+      file: base.yaml
+      service: orderer-base
+    container_name: orderer5.workspace
+    networks:
+    - byfn
+    volumes:
+        - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+        - ./crypto-config/ordererOrganizations/workspace/orderers/orderer5.workspace/msp:/var/hyperledger/orderer/msp
+        - ./crypto-config/ordererOrganizations/workspace/orderers/orderer5.workspace/tls/:/var/hyperledger/orderer/tls
+        - orderer5.workspace:/var/hyperledger/production/orderer
+    ports:
+    - 11050:7050
+
+
+  peer1.healthcare.workspace:
+    container_name: peer1.healthcare.workspace
+    extends:
+      file: base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.healthcare.workspace
+      - CORE_PEER_ADDRESS=peer1.healthcare.workspace:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODEADDRESS=peer1.healthcare.workspace:7052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer2.healthcare.workspace:8051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.healthcare.workspace:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config/peerOrganizations/healthcare.workspace/peers/peer1.healthcare.workspace/msp:/etc/hyperledger/fabric/msp
+        - ./crypto-config/peerOrganizations/healthcare.workspace/peers/peer1.healthcare.workspace/tls:/etc/hyperledger/fabric/tls
+        - peer1.healthcare.workspace:/var/hyperledger/production
+    ports:
+      - 7051:7051
+    networks:
+      - byfn
+
+  peer2.healthcare.workspace:
+    container_name: peer2.healthcare.workspace
+    extends:
+      file: base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer2.healthcare.workspace
+      - CORE_PEER_ADDRESS=peer2.healthcare.workspace:8051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:8051
+      - CORE_PEER_CHAINCODEADDRESS=peer2.healthcare.workspace:8052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1. .workspace:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer2.healthcare.workspace:8051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config/peerOrganizations/healthcare.workspace/peers/peer2.healthcare.workspace/msp:/etc/hyperledger/fabric/msp
+        - ./crypto-config/peerOrganizations/healthcare.workspace/peers/peer2.healthcare.workspace/tls:/etc/hyperledger/fabric/tls
+        - peer2.healthcare.workspace:/var/hyperledger/production
+    ports:
+      - 8051:8051
+    networks:
+      - byfn
+
+  peer1.research.workspace:
+    container_name: peer1.research.workspace
+    extends:
+      file: base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.research.workspace
+      - CORE_PEER_ADDRESS=peer1.research.workspace:9051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:9051
+      - CORE_PEER_CHAINCODEADDRESS=peer1.research.workspace:9052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:9052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer2.research.workspace:10051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.research.workspace:9051
+      - CORE_PEER_LOCALMSPID=Org2MSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config/peerOrganizations/research.workspace/peers/peer1.research.workspace/msp:/etc/hyperledger/fabric/msp
+        - ./crypto-config/peerOrganizations/research.workspace/peers/peer1.research.workspace/tls:/etc/hyperledger/fabric/tls
+        - peer1.research.workspace:/var/hyperledger/production
+    ports:
+      - 9051:9051
+    networks:
+      - byfn
+
+  peer2.research.workspace:
+    container_name: peer2.research.workspace
+    extends:
+      file: base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer2.research.workspace
+      - CORE_PEER_ADDRESS=peer2.research.workspace:10051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:10051
+      - CORE_PEER_CHAINCODEADDRESS=peer2.research.workspace:10052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:10052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.research.workspace:9051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer2.research.workspace:10051
+      - CORE_PEER_LOCALMSPID=Org2MSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config/peerOrganizations/research.workspace/peers/peer2.research.workspace/msp:/etc/hyperledger/fabric/msp
+        - ./crypto-config/peerOrganizations/research.workspace/peers/peer2.research.workspace/tls:/etc/hyperledger/fabric/tls
+        - peer2.research.workspace:/var/hyperledger/production
+    ports:
+      - 10051:10051
+    networks:
+      - byfn
+
+  peer1.thirdparty.workspace:
+    container_name: peer1.thirdparty.workspace
+    extends:
+      file: base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.thirdparty.workspace
+      - CORE_PEER_ADDRESS=peer1.thirdparty.workspace:11051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:11051
+      - CORE_PEER_CHAINCODEADDRESS=peer1.thirdparty.workspace:11052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:11052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer2.thirdparty.workspace:12051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.thirdparty.workspace:11051
+      - CORE_PEER_LOCALMSPID=Org3MSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config/peerOrganizations/thirdparty.workspace/peers/peer1.thirdparty.workspace/msp:/etc/hyperledger/fabric/msp
+        - ./crypto-config/peerOrganizations/thirdparty.workspace/peers/peer1.thirdparty.workspace/tls:/etc/hyperledger/fabric/tls
+        - peer1.thirdparty.workspace:/var/hyperledger/production
+    ports:
+      - 11051:11051
+    networks:
+      - byfn
+
+  peer2.thirdparty.workspace:
+    container_name: peer2.thirdparty.workspace
+    extends:
+      file: base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer2.thirdparty.workspace
+      - CORE_PEER_ADDRESS=peer2.thirdparty.workspace:12051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:12051
+      - CORE_PEER_CHAINCODEADDRESS=peer2.thirdparty.workspace:12052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:12052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.thirdparty.workspace:11051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer2.thirdparty.workspace:12051
+      - CORE_PEER_LOCALMSPID=Org3MSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config/peerOrganizations/thirdparty.workspace/peers/peer2.thirdparty.workspace/msp:/etc/hyperledger/fabric/msp
+        - ./crypto-config/peerOrganizations/thirdparty.workspace/peers/peer2.thirdparty.workspace/tls:/etc/hyperledger/fabric/tls
+        - peer2.thirdparty.workspace:/var/hyperledger/production
+    ports:
+      - 12051:12051
+    networks:
+      - byfn
+
+      
+  cli:
+    container_name: cli
+    image: hyperledger/fabric-tools:$IMAGE_TAG
+    tty: true
+    stdin_open: true
+    environment:
+      - SYS_CHANNEL=$SYS_CHANNEL
+      - GOPATH=/opt/gopath
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      #- FABRIC_LOGGING_SPEC=DEBUG
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=cli
+      - CORE_PEER_ADDRESS=peer1.healthcare.workspace:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/healthcare.workspace/peers/peer1.healthcare.workspace/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/healthcare.workspace/peers/peer1.healthcare.workspace/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/healthcare.workspace/peers/peer1.healthcare.workspace/tls/ca.crt
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/healthcare.workspace/users/Admin@healthcare.workspace/msp
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./../chaincode/:/opt/gopath/src/github.com/chaincode
+        - ./crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
+        - ./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/
+        - ./myscripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/myscripts/
+        - ./channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+    depends_on:
+      - orderer1.workspace
+      - orderer2.workspace
+      - orderer3.workspace
+      - orderer4.workspace
+      - orderer5.workspace
+      - peer1.healthcare.workspace
+      - peer2.healthcare.workspace
+      - peer1.research.workspace
+      - peer2.research.workspace
+      - peer1.thirdparty.workspace
+      - peer2.thirdparty.workspace
+            
+    networks:
+      - byfn
+
+
+  ca1:
+    extends:
+      file: base.yaml
+      service: ca-base
+    environment:
+      - FABRIC_CA_SERVER_CA_NAME=ca-healthcare
+      - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.healthcare.workspace-cert.pem
+      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/healthcare_sk
+      - FABRIC_CA_SERVER_PORT=7054
+    ports:
+      - "7054:7054"
+    command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.healthcare.workspace-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/healthcare_sk -b admin:adminpw -d'
+    volumes:
+      - ./crypto-config/peerOrganizations/healthcare.workspace/ca/:/etc/hyperledger/fabric-ca-server-config
+    container_name: ca_healthcare
+    networks: 
+      - byfn
+    
+
+  ca2:
+    extends:
+      file: base.yaml
+      service: ca-base
+    environment:
+      - FABRIC_CA_SERVER_CA_NAME=ca-research
+      - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.research.workspace-cert.pem
+      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/research_sk
+      - FABRIC_CA_SERVER_PORT=9054
+    ports:
+      - "9054:9054"
+    command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.research.workspace-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/research_sk -b admin:adminpw -d'
+    volumes:
+      - ./crypto-config/peerOrganizations/research.workspace/ca/:/etc/hyperledger/fabric-ca-server-config
+    container_name: ca_research
+    networks: 
+      - byfn
+
+
+  ca3:
+    extends:
+      file: base.yaml
+      service: ca-base
+    environment:
+      - FABRIC_CA_SERVER_CA_NAME=ca-thirdparty
+      - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.thirdparty.workspace-cert.pem
+      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/thirdparty_sk
+      - FABRIC_CA_SERVER_PORT=11054
+    ports:
+      - "11054:11054"
+    command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.thirdparty.workspace-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/thirdparty_sk -b admin:adminpw -d'
+    volumes:
+      - ./crypto-config/peerOrganizations/thirdparty.workspace/ca/:/etc/hyperledger/fabric-ca-server-config
+    container_name: ca_thirdparty
+    networks:
+      - byfn
+  

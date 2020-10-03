@@ -1,0 +1,73 @@
+The tools cryptogen and configtxgen are available in the fabric-samples repository, please download them first then find the path of the tools using
+readlink -f <tool-name> 
+when in the directory of the tool present.
+
+../bin/cryptogen generate --config=./crypto-config.yaml
+export FABRIC_CFG_PATH=$PWD
+../bin/configtxgen -profile Raft -channelID workspace-sys-channel -outputBlock ./channel-artifacts/genesis.block
+export CHANNEL_NAME=workspace
+../bin/configtxgen -profile healthcare -outputCreateChannelTx ./channel-artifacts/workspace.tx -channelID $CHANNEL_NAME
+../bin/configtxgen -profile healthcare -outputAnchorPeersUpdate ./channel-artifacts/healthcareMSPanchors.tx -channelID $CHANNEL_NAME -asOrg healthcareMSP
+../bin/configtxgen -profile healthcare -outputAnchorPeersUpdate ./channel-artifacts/researchMSPanchors.tx -channelID $CHANNEL_NAME -asOrg researchMSP
+../bin/configtxgen -profile healthcare -outputAnchorPeersUpdate ./channel-artifacts/thirdpartyMSPanchors.tx -channelID $CHANNEL_NAME -asOrg thirdpartyMSP
+
+
+Next is to rename the priv_sk to <org-name>_sk in each of the peerOrganizations folder, then proceed with the following commands.
+
+
+export COMPOSE_PROJECT_NAME=net
+export IMAGE_TAG=latest
+export SYS_CHANNEL=workspace-sys-channel
+
+docker-compose -f docker-compose.yaml up -d
+docker exec -it cli bash
+
+## following commands to be executed in the bash docker shell ##
+export CHANNEL_NAME=workspace
+
+CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/healthcare.workspace/users/Admin@healthcare.workspace/msp
+CORE_PEER_ADDRESS=peer1.healthcare.workspace:7051
+CORE_PEER_LOCALMSPID="healthcareMSP"
+CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/healthcare.workspace/peers/peer1.healthcare.workspace/tls/ca.crt
+
+peer channel create \
+    -o orderer1.workspace:7050 \
+    -c $CHANNEL_NAME \
+    -f ./channel-artifacts/$CHANNEL_NAME.tx \
+    --outputBlock ./$CHANNEL_NAME.block \
+    --tls \
+    --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/workspace/orderers/orderer1.workspace/msp/tlscacerts/tlsca.workspace-cert.pem
+
+peer channel join -b ./workspace.block
+
+peer channel update \
+	-o orderer1.workspace:7050 \
+	-c $CHANNEL_NAME \
+	-f ./channel-artifacts/healthcareMSPanchors.tx \
+	--tls \
+	--cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/workspace/orderers/orderer1.workspace/msp/tlscacerts/tlsca.workspace-cert.pem
+
+CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/research.workspace/users/Admin@research.workspace/msp
+CORE_PEER_ADDRESS=peer1.research.workspace:9051
+CORE_PEER_LOCALMSPID="researchMSP"
+CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/research.workspace/peers/peer1.research.workspace/tls/ca.crt
+peer channel join -b ./workspace.block
+peer channel update \
+	-o orderer1.workspace:7050 \
+	-c $CHANNEL_NAME \
+	-f ./channel-artifacts/researchMSPanchors.tx \
+	--tls \
+	--cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/workspace/orderers/orderer1.workspace/msp/tlscacerts/tlsca.workspace-cert.pem
+
+
+CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/thirdparty.workspace/users/Admin@thirdparty.workspace/msp
+CORE_PEER_ADDRESS=peer1.thirdparty.workspace:11051
+CORE_PEER_LOCALMSPID="thirdpartyMSP"
+CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/thirdparty.workspace/peers/peer1.thirdparty.workspace/tls/ca.crt
+peer channel join -b ./workspace.block
+peer channel update \
+	-o orderer1.workspace:7050 \
+	-c $CHANNEL_NAME \
+	-f ./channel-artifacts/Org3MSPanchors.tx \
+	--tls \
+	--cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/workspace/orderers/orderer1.workspace/msp/tlscacerts/tlsca.workspace-cert.pem
